@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🚀 Rocket to Nowhere</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="start-screen">
+        <div class="stars"></div>
+        <div class="start-content">
+            <h1>🚀 ROCKET TO NOWHERE</h1>
+            <p class="tagline">A totally fair rocket game</p>
+            <p class="instructions">Fly your rocket to the checkpoint. Dodge obstacles. Simple right?</p>
+            <p class="hint">Controls: WASD or Arrow Keys</p>
+            <button id="start-btn">LAUNCH</button>
+            <p class="deaths-display">Deaths: <span id="death-count">0</span></p>
+        </div>
+    </div>
+
+    <canvas id="gameCanvas"></canvas>
+
+    <div id="hud">
+        <div class="hud-left">
+            <div class="distance-bar">
+                <div class="distance-label">DISTANCE TO CHECKPOINT</div>
+                <div class="distance-track">
+                    <div class="distance-fill" id="distance-fill"></div>
+                    <div class="rocket-icon" id="rocket-icon">🚀</div>
+                </div>
+            </div>
+        </div>
+        <div class="hud-right">
+            <div class="death-counter">☠️ Deaths: <span id="hud-deaths">0</span></div>
+            <div class="attempt-counter">Attempt #<span id="attempt-num">1</span></div>
+        </div>
+    </div>
+
+    <div id="fail-screen" class="hidden">
+        <div class="fail-content">
+            <h2 id="fail-title">DESTROYED</h2>
+            <p id="fail-message">A missile found you. How tragic.</p>
+            <div id="fail-reason"></div>
+            <button id="retry-btn">TRY AGAIN (it won't help)</button>
+        </div>
+    </div>
+
+    <div id="win-screen" class="hidden">
+        <div class="win-content">
+            <h2>WAIT...</h2>
+            <p>You actually made it? That's not supposed to happen.</p>
+            <p>Just kidding.</p>
+            <button id="real-retry-btn">ACTUALLY TRY AGAIN</button>
+        </div>
+    </div>
+
+    <div id="near-miss-screen" class="hidden">
+        <div class="near-miss-content">
+            <h2>SO CLOSE!</h2>
+            <p id="near-miss-message">You were pixels away!</p>
+            <button id="near-miss-retry-btn">ONE MORE TRY</button>
+        </div>
+    </div>
+
+    <div id="sabotage-overlay" class="hidden">
+        <div class="sabotage-text" id="sabotage-text"></div>
+    </div>
+
+    <script src="game.js"></script>
+</body>
+</html>

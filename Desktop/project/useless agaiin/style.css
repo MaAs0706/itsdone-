@@ -1,0 +1,387 @@
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Orbitron:wght@400;700;900&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background: #0a0a1a;
+    overflow: hidden;
+    font-family: 'Orbitron', sans-serif;
+    color: #fff;
+    width: 100vw;
+    height: 100vh;
+}
+
+#gameCanvas {
+    display: block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1;
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* START SCREEN */
+#start-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(ellipse at center, #1a1a3e 0%, #0a0a1a 70%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    animation: fadeIn 0.5s ease;
+}
+
+.start-content {
+    text-align: center;
+    z-index: 2;
+}
+
+.start-content h1 {
+    font-size: 3.5rem;
+    margin-bottom: 1rem;
+    background: linear-gradient(45deg, #ff6b6b, #feca57, #ff9ff3, #54a0ff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: glow 2s ease-in-out infinite alternate;
+}
+
+.tagline {
+    font-size: 1.2rem;
+    color: #888;
+    margin-bottom: 2rem;
+    font-style: italic;
+}
+
+.instructions {
+    font-size: 0.9rem;
+    color: #aaa;
+    margin-bottom: 0.5rem;
+}
+
+.hint {
+    font-size: 0.7rem;
+    color: #666;
+    margin-bottom: 2rem;
+}
+
+#start-btn {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.5rem;
+    padding: 15px 50px;
+    background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+    border: none;
+    border-radius: 10px;
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    animation: pulse 2s ease-in-out infinite;
+}
+
+#start-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 0 30px rgba(255, 107, 107, 0.5);
+}
+
+.deaths-display {
+    margin-top: 2rem;
+    font-size: 0.8rem;
+    color: #555;
+}
+
+/* HUD */
+#hud {
+    position: fixed;
+    top: 20px;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 0 30px;
+    z-index: 50;
+    pointer-events: none;
+}
+
+.distance-bar {
+    background: rgba(0, 0, 0, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 10px 15px;
+    min-width: 300px;
+}
+
+.distance-label {
+    font-size: 0.6rem;
+    color: #888;
+    margin-bottom: 8px;
+    letter-spacing: 2px;
+}
+
+.distance-track {
+    position: relative;
+    height: 12px;
+    background: #1a1a2e;
+    border-radius: 6px;
+    overflow: visible;
+}
+
+.distance-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #00b894, #00cec9, #0984e3);
+    border-radius: 6px;
+    transition: width 0.1s linear;
+}
+
+.rocket-icon {
+    position: absolute;
+    top: 50%;
+    left: 0%;
+    transform: translate(-50%, -50%);
+    font-size: 1.5rem;
+    transition: left 0.1s linear;
+    filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.5));
+}
+
+.hud-right {
+    text-align: right;
+}
+
+.death-counter {
+    font-size: 0.8rem;
+    color: #ff6b6b;
+    background: rgba(0, 0, 0, 0.7);
+    padding: 8px 15px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 107, 107, 0.2);
+}
+
+.attempt-counter {
+    font-size: 0.7rem;
+    color: #666;
+    margin-top: 5px;
+}
+
+/* FAIL SCREEN */
+#fail-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.92);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 200;
+    animation: fadeIn 0.3s ease;
+}
+
+.fail-content {
+    text-align: center;
+    max-width: 500px;
+}
+
+#fail-title {
+    font-size: 3rem;
+    color: #ff6b6b;
+    margin-bottom: 1rem;
+    animation: shake 0.5s ease;
+}
+
+#fail-message {
+    font-size: 1.1rem;
+    color: #aaa;
+    margin-bottom: 1.5rem;
+}
+
+#fail-reason {
+    font-size: 0.8rem;
+    color: #666;
+    margin-bottom: 2rem;
+    min-height: 20px;
+}
+
+#retry-btn {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1rem;
+    padding: 12px 40px;
+    background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+    border: none;
+    border-radius: 8px;
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+#retry-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 20px rgba(255, 107, 107, 0.4);
+}
+
+/* WIN SCREEN (troll) */
+#win-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.95);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 200;
+    animation: fadeIn 0.3s ease;
+}
+
+.win-content {
+    text-align: center;
+}
+
+.win-content h2 {
+    font-size: 4rem;
+    color: #feca57;
+    margin-bottom: 1rem;
+    animation: glow 1s ease-in-out infinite alternate;
+}
+
+.win-content p {
+    font-size: 1.2rem;
+    color: #aaa;
+    margin-bottom: 1rem;
+}
+
+#real-retry-btn {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1rem;
+    padding: 12px 40px;
+    background: linear-gradient(135deg, #feca57, #ff9f43);
+    border: none;
+    border-radius: 8px;
+    color: #1a1a2e;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-top: 1rem;
+}
+
+#real-retry-btn:hover {
+    transform: scale(1.05);
+}
+
+/* NEAR MISS SCREEN */
+#near-miss-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 200;
+    animation: fadeIn 0.3s ease;
+}
+
+.near-miss-content {
+    text-align: center;
+}
+
+.near-miss-content h2 {
+    font-size: 3rem;
+    color: #feca57;
+    margin-bottom: 1rem;
+}
+
+.near-miss-content p {
+    font-size: 1rem;
+    color: #aaa;
+    margin-bottom: 1.5rem;
+}
+
+#near-miss-retry-btn {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1rem;
+    padding: 12px 40px;
+    background: linear-gradient(135deg, #feca57, #ff9f43);
+    border: none;
+    border-radius: 8px;
+    color: #1a1a2e;
+    cursor: pointer;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+#near-miss-retry-btn:hover {
+    transform: scale(1.05);
+}
+
+/* SABOTAGE OVERLAY */
+#sabotage-overlay {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 150;
+    pointer-events: none;
+}
+
+.sabotage-text {
+    font-size: 1.5rem;
+    color: #ff6b6b;
+    text-align: center;
+    animation: sabotageAppear 0.5s ease;
+    text-shadow: 0 0 20px rgba(255, 107, 107, 0.8);
+}
+
+/* ANIMATIONS */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes glow {
+    from { text-shadow: 0 0 10px rgba(255, 107, 107, 0.5); }
+    to { text-shadow: 0 0 30px rgba(255, 107, 107, 0.8), 0 0 60px rgba(255, 107, 107, 0.4); }
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+    20%, 40%, 60%, 80% { transform: translateX(5px); }
+}
+
+@keyframes sabotageAppear {
+    0% { transform: scale(0); opacity: 0; }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes screenFlash {
+    0% { background: rgba(255, 0, 0, 0.3); }
+    100% { background: transparent; }
+}
