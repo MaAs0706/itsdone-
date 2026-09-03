@@ -113,6 +113,7 @@ const rocket = {
 
 let obstacles = [];
 let particles = [];
+let fragments = [];
 let stars = [];
 
 function initStars() {
@@ -141,6 +142,7 @@ function resetGame() {
     sabotageTimer = 0;
     obstacles = [];
     particles = [];
+    fragments = [];
     rocket.x = 150;
     rocket.y = canvas.height / 2;
     rocket.vx = 0;
@@ -189,6 +191,11 @@ function spawnObstacle() {
 
     const availableTypes = ['missile_right', 'missile_left', 'asteroid', 'debris_top', 'debris_bottom'];
 
+    if (diff > 1 && Math.random() < 0.18) {
+        spawnWave();
+        return;
+    }
+
     if (diff > 3) availableTypes.push('laser', 'bullet_swarm');
     if (diff > 5) availableTypes.push('black_hole', 'gravity_flip');
     if (diff > 7) availableTypes.push('wall', 'reverse_missile');
@@ -212,46 +219,73 @@ function spawnObstacle() {
     switch (type) {
         case 'missile_right':
             obs.x = canvas.width + 50;
-            obs.y = rocket.y + (Math.random() - 0.5) * 200;
-            obs.speed = 3 + Math.random() * 2 + diff * 0.15;
+            obs.y = Math.random() * canvas.height;
+            obs.mode = Math.random() < 0.55 ? 'straight' : 'chaser';
+            obs.baseSpeed = 5 + Math.random() * 2 + diff * 0.2;
+            obs.speed = obs.baseSpeed;
             obs.width = 30;
             obs.height = 10;
             obs.trail = [];
+            obs.vy = 0;
+            if (obs.mode === 'straight') {
+                obs.homing = 0;
+            } else {
+                obs.homing = 0.05 + Math.random() * 0.07;
+                obs.followTime = 150 + Math.random() * 300;
+                obs.followed = 0;
+            }
             break;
 
         case 'missile_left':
             obs.x = -50;
-            obs.y = rocket.y + (Math.random() - 0.5) * 200;
-            obs.speed = -(3 + Math.random() * 2 + diff * 0.15);
+            obs.y = Math.random() * canvas.height;
+            obs.mode = Math.random() < 0.55 ? 'straight' : 'chaser';
+            obs.baseSpeed = 5 + Math.random() * 2 + diff * 0.2;
+            obs.speed = obs.baseSpeed;
             obs.width = 30;
             obs.height = 10;
             obs.trail = [];
+            obs.vy = 0;
+            if (obs.mode === 'straight') {
+                obs.homing = 0;
+            } else {
+                obs.homing = 0.05 + Math.random() * 0.07;
+                obs.followTime = 150 + Math.random() * 300;
+                obs.followed = 0;
+            }
             break;
 
         case 'asteroid':
             obs.x = canvas.width + 50;
             obs.y = Math.random() * canvas.height;
-            obs.speed = 2 + Math.random() * 2;
+            obs.speed = 2.5 + Math.random() * 2.5 + diff * 0.1;
+            obs.vy = (Math.random() - 0.5) * 3;
+            obs.wobble = Math.random() * 0.1 + 0.03;
+            obs.wobblePhase = Math.random() * Math.PI * 2;
             obs.radius = 15 + Math.random() * 25;
             obs.rotation = 0;
             obs.rotSpeed = (Math.random() - 0.5) * 0.1;
             break;
 
         case 'debris_top':
-            obs.x = rocket.x + 200 + Math.random() * 400;
-            obs.y = -30;
-            obs.speed = 2 + Math.random() * 3;
-            obs.width = 10 + Math.random() * 20;
-            obs.height = 10 + Math.random() * 20;
+            obs.x = rocket.x + 200 + Math.random() * 600;
+            obs.y = -30 - Math.random() * 100;
+            obs.speed = 3 + Math.random() * 4 + diff * 0.2;
+            obs.vx = (Math.random() - 0.5) * 2;
+            obs.rotateSettle = Math.random() * 2;
+            obs.width = 10 + Math.random() * 25;
+            obs.height = 10 + Math.random() * 25;
             obs.rotation = Math.random() * Math.PI;
             break;
 
         case 'debris_bottom':
-            obs.x = rocket.x + 200 + Math.random() * 400;
-            obs.y = canvas.height + 30;
-            obs.speed = -(2 + Math.random() * 3);
-            obs.width = 10 + Math.random() * 20;
-            obs.height = 10 + Math.random() * 20;
+            obs.x = rocket.x + 200 + Math.random() * 600;
+            obs.y = canvas.height + 30 + Math.random() * 100;
+            obs.speed = -(3 + Math.random() * 4 + diff * 0.2);
+            obs.vx = (Math.random() - 0.5) * 2;
+            obs.rotateSettle = Math.random() * 2;
+            obs.width = 10 + Math.random() * 25;
+            obs.height = 10 + Math.random() * 25;
             obs.rotation = Math.random() * Math.PI;
             break;
 
@@ -342,6 +376,46 @@ function spawnObstacle() {
     obstacles.push(obs);
 }
 
+function spawnWave() {
+    showSabotage('⚠ INCOMING WAVE ⚠');
+    playSound('troll');
+    const diff = attempts + 1;
+
+    const nMissiles = 2 + Math.floor(Math.random() * 2);
+    for (let i = 0; i < nMissiles; i++) {
+        const obs = { type: 'missile_right', active: true, timer: 0 };
+        obs.x = canvas.width + 50 + i * 60;
+        obs.y = Math.random() * canvas.height;
+        obs.mode = 'chaser';
+        obs.baseSpeed = 5 + Math.random() * 2 + diff * 0.3;
+        obs.speed = obs.baseSpeed;
+        obs.width = 30;
+        obs.height = 10;
+        obs.trail = [];
+        obs.vy = 0;
+        obs.homing = 0.06 + Math.random() * 0.08;
+        obs.followTime = 200 + Math.random() * 250;
+        obs.followed = 0;
+        obstacles.push(obs);
+    }
+
+    const nDebris = 4 + Math.floor(Math.random() * 4);
+    for (let i = 0; i < nDebris; i++) {
+        const fromTop = Math.random() < 0.5;
+        const obs = { type: fromTop ? 'debris_top' : 'debris_bottom', active: true, timer: 0 };
+        obs.x = canvas.width + 100 + i * 40 + Math.random() * 100;
+        obs.y = fromTop ? -30 - Math.random() * 80 : canvas.height + 30 + Math.random() * 80;
+        const dir = fromTop ? 1 : -1;
+        obs.speed = (3 + Math.random() * 3 + diff * 0.2) * dir;
+        obs.vx = (Math.random() - 0.5) * 3;
+        obs.rotateSettle = Math.random() * 2;
+        obs.width = 12 + Math.random() * 22;
+        obs.height = 12 + Math.random() * 22;
+        obs.rotation = Math.random() * Math.PI;
+        obstacles.push(obs);
+    }
+}
+
 function spawnParticles(x, y, color, count, speed) {
     for (let i = 0; i < count; i++) {
         particles.push({
@@ -361,6 +435,33 @@ function spawnExplosion(x, y) {
     spawnParticles(x, y, '#feca57', 20, 6);
     spawnParticles(x, y, '#ff4757', 15, 10);
     spawnParticles(x, y, '#ffffff', 10, 4);
+}
+
+function spawnFragments(x, y) {
+    const pieceShapes = [
+        { w: 18, h: 8, color: '#e0e0e0' },
+        { w: 12, h: 6, color: '#54a0ff' },
+        { w: 10, h: 10, color: '#ff4757' },
+        { w: 14, h: 5, color: '#feca57' },
+        { w: 8, h: 12, color: '#b0b0b0' },
+        { w: 16, h: 4, color: '#ffffff' },
+    ];
+    for (const shape of pieceShapes) {
+        fragments.push({
+            x: x + (Math.random() - 0.5) * 20,
+            y: y + (Math.random() - 0.5) * 10,
+            vx: (Math.random() - 0.5) * 7,
+            vy: (Math.random() - 0.5) * 7 - 2,
+            rotation: Math.random() * Math.PI * 2,
+            rotSpeed: (Math.random() - 0.5) * 0.4,
+            w: shape.w,
+            h: shape.h,
+            color: shape.color,
+            life: 1,
+            decay: 0.006 + Math.random() * 0.01,
+            spin: true,
+        });
+    }
 }
 
 function triggerNearMiss() {
@@ -413,6 +514,7 @@ function triggerTrollExplosion() {
     showSabotage(msgs[Math.floor(Math.random() * msgs.length)]);
     playSound('explode');
     spawnExplosion(rocket.x, rocket.y);
+    spawnFragments(rocket.x, rocket.y);
     screenShake.intensity = 15;
 
     setTimeout(() => {
@@ -619,6 +721,14 @@ function checkCollision(obs) {
     switch (obs.type) {
         case 'missile_right':
         case 'missile_left':
+            if (obs.mode === 'precipitous') return false;
+            return (
+                rx < obs.x + obs.width &&
+                rx + rw > obs.x &&
+                ry < obs.y + obs.height &&
+                ry + rh > obs.y
+            );
+
         case 'reverse_missile':
             return (
                 rx < obs.x + obs.width &&
@@ -729,30 +839,77 @@ function update() {
         switch (obs.type) {
             case 'missile_right':
                 obs.x -= obs.speed;
-                obs.trail.push({ x: obs.x + obs.width, y: obs.y + obs.height / 2 });
-                if (obs.trail.length > 15) obs.trail.shift();
+                if (obs.mode === 'chaser') {
+                    obs.followed++;
+                    const jetSpeed = Math.abs(rocket.vx) + scrollSpeed;
+                    const desiredSpeed = Math.max(obs.baseSpeed, Math.min(13, jetSpeed + 1.5));
+                    obs.speed += (desiredSpeed - obs.speed) * 0.06;
+                    if (obs.followed >= obs.followTime) {
+                        obs.mode = 'precipitous';
+                        obs.vy = (Math.random() < 0.5 ? -1 : 1) * (4 + Math.random() * 3);
+                    }
+                    obs.y += obs.vy;
+                    if (rocket.y > obs.y + obs.height / 2) obs.vy += obs.homing;
+                    else if (rocket.y < obs.y + obs.height / 2) obs.vy -= obs.homing;
+                    obs.vy = Math.max(-4, Math.min(4, obs.vy));
+                } else {
+                    obs.y += obs.vy;
+                    if (rocket.y > obs.y + obs.height / 2) obs.vy += obs.homing;
+                    else if (rocket.y < obs.y + obs.height / 2) obs.vy -= obs.homing;
+                    obs.vy = Math.max(-4, Math.min(4, obs.vy));
+                }
+                obs.trail.push({ x: obs.x + obs.width / 2, y: obs.y + obs.height / 2 });
+                if (obs.trail.length > 20) obs.trail.shift();
                 break;
 
             case 'missile_left':
+                obs.x += Math.abs(obs.speed);
+                if (obs.mode === 'chaser') {
+                    obs.followed++;
+                    const jetSpeed = Math.abs(rocket.vx) + scrollSpeed;
+                    const desiredSpeed = Math.max(obs.baseSpeed, Math.min(13, jetSpeed + 1.5));
+                    obs.speed += (desiredSpeed - obs.speed) * 0.06;
+                    if (obs.followed >= obs.followTime) {
+                        obs.mode = 'precipitous';
+                        obs.vy = (Math.random() < 0.5 ? -1 : 1) * (4 + Math.random() * 3);
+                    }
+                    obs.y += obs.vy;
+                    if (rocket.y > obs.y + obs.height / 2) obs.vy += obs.homing;
+                    else if (rocket.y < obs.y + obs.height / 2) obs.vy -= obs.homing;
+                    obs.vy = Math.max(-4, Math.min(4, obs.vy));
+                } else {
+                    obs.y += obs.vy;
+                    if (rocket.y > obs.y + obs.height / 2) obs.vy += obs.homing;
+                    else if (rocket.y < obs.y + obs.height / 2) obs.vy -= obs.homing;
+                    obs.vy = Math.max(-4, Math.min(4, obs.vy));
+                }
+                obs.trail.push({ x: obs.x + obs.width / 2, y: obs.y + obs.height / 2 });
+                if (obs.trail.length > 20) obs.trail.shift();
+                break;
+
             case 'reverse_missile':
                 obs.x += Math.abs(obs.speed);
-                obs.trail.push({ x: obs.x, y: obs.y + obs.height / 2 });
-                if (obs.trail.length > 15) obs.trail.shift();
+                obs.y += Math.sin(obs.timer * 0.1) * (1 + diff * 0.1);
+                obs.trail.push({ x: obs.x + obs.width / 2, y: obs.y + obs.height / 2 });
+                if (obs.trail.length > 20) obs.trail.shift();
                 break;
 
             case 'asteroid':
                 obs.x -= obs.speed;
+                obs.y += obs.vy + Math.sin(obs.timer * obs.wobble + obs.wobblePhase) * 1.5;
                 obs.rotation += obs.rotSpeed;
                 break;
 
             case 'debris_top':
                 obs.y += obs.speed;
-                obs.rotation += 0.02;
+                obs.x += obs.vx;
+                obs.rotation += obs.rotateSettle;
                 break;
 
             case 'debris_bottom':
                 obs.y += obs.speed;
-                obs.rotation -= 0.02;
+                obs.x += obs.vx;
+                obs.rotation -= obs.rotateSettle;
                 break;
 
             case 'laser':
@@ -794,6 +951,7 @@ function update() {
                 if (obs.timer >= obs.delay && !obs.exploded) {
                     obs.exploded = true;
                     spawnExplosion(rocket.x, rocket.y);
+                    spawnFragments(rocket.x, rocket.y);
                     screenShake.intensity = 20;
                     playSound('explode');
                     setTimeout(() => killRocket('rocket_betrayal'), 500);
@@ -809,6 +967,7 @@ function update() {
 
         if (obs.active !== false && checkCollision(obs)) {
             spawnExplosion(rocket.x, rocket.y);
+            spawnFragments(rocket.x, rocket.y);
             screenShake.intensity = 12;
             playSound('explode');
 
@@ -841,6 +1000,16 @@ function update() {
         p.y += p.vy;
         p.life -= p.decay;
         if (p.life <= 0) particles.splice(i, 1);
+    }
+
+    for (let i = fragments.length - 1; i >= 0; i--) {
+        const f = fragments[i];
+        f.x += f.vx;
+        f.y += f.vy;
+        f.vy += 0.08;
+        f.rotation += f.rotSpeed;
+        f.life -= f.decay;
+        if (f.life <= 0) fragments.splice(i, 1);
     }
 
     if (screenShake.intensity > 0) {
@@ -898,6 +1067,7 @@ function draw() {
         ctx.fillRect(i - offset, groundY + 5, 40, 20);
     }
 
+    drawCheckpoint();
     drawRocket();
     drawObstacles();
     drawParticles();
@@ -939,6 +1109,56 @@ function draw() {
     }
 
     ctx.restore();
+}
+
+function drawCheckpoint() {
+    const progress = distanceTraveled / TOTAL_DISTANCE;
+    if (progress < 0.6) return;
+
+    const worldX = rocket.x + (TOTAL_DISTANCE - distanceTraveled);
+    if (worldX > canvas.width + 300 || worldX < -300) {
+        if (progress < 1 && !nearMissTriggered && !fakeWinTriggered) return;
+    }
+
+    const py = 40 + Math.sin(gameTimer * 0.05) * 5;
+
+    const pulse = Math.sin(gameTimer * 0.08) * 0.4 + 0.6;
+
+    ctx.save();
+    ctx.translate(worldX, py);
+
+    ctx.shadowColor = '#00ff88';
+    ctx.shadowBlur = 40;
+
+    ctx.strokeStyle = '#00ff88';
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.arc(0, 0, 45 + pulse * 10, 0, Math.PI * 2);
+    ctx.stroke();
+
+    ctx.shadowBlur = 60;
+    ctx.fillStyle = '#00ff88';
+    ctx.globalAlpha = 0.25 + pulse * 0.3;
+    ctx.beginPath();
+    ctx.arc(0, 0, 30 + pulse * 8, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.shadowBlur = 0;
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 16px Orbitron';
+    ctx.textAlign = 'center';
+    ctx.fillText('CHECKPOINT', 0, -60);
+
+    ctx.fillStyle = '#00ff88';
+    ctx.font = 'bold 10px Orbitron';
+    ctx.fillText('1000m', 0, 80);
+
+    ctx.restore();
+
+    const beamAlpha = 0.06 + pulse * 0.08;
+    ctx.fillStyle = `rgba(0, 255, 136, ${beamAlpha})`;
+    ctx.fillRect(worldX - 60, py - 300, 120, 600);
 }
 
 function drawRocket() {
@@ -1143,6 +1363,15 @@ function drawParticles() {
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.size * p.life, 0, Math.PI * 2);
         ctx.fill();
+    }
+    for (const f of fragments) {
+        ctx.save();
+        ctx.translate(f.x, f.y);
+        ctx.rotate(f.rotation);
+        ctx.globalAlpha = Math.max(0, f.life);
+        ctx.fillStyle = f.color;
+        ctx.fillRect(-f.w / 2, -f.h / 2, f.w, f.h);
+        ctx.restore();
     }
     ctx.globalAlpha = 1;
 }
